@@ -109,7 +109,6 @@ function App(): React.JSX.Element {
   return (
     <SafeAreaView style={{ flex: 1 }} >
       <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
-      <Text>{lastBackgroundTime} / {intervalId}</Text>
       <WebView
         ref={webViewRef}
         onNavigationStateChange={navState => setCanGoBack(navState.canGoBack)}
