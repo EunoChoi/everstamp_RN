@@ -1,7 +1,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, BackHandler, StatusBar, SafeAreaView, Alert } from 'react-native';
+import { BackHandler, Text, StatusBar, SafeAreaView, Alert } from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
+import { AppState, AppStateStatus, View, ActivityIndicator } from 'react-native';
 
 
 import WebView from 'react-native-webview';
@@ -9,49 +10,76 @@ import WebView from 'react-native-webview';
 
 
 function App(): React.JSX.Element {
-  // const [loading, setLoading] = useState(true);
-  // const fadeAnim = useRef(new Animated.Value(0)).current; // Animated.Value로 초기값 0 설정
-
 
   useEffect(() => {
     // 컴포넌트가 마운트된 후 실행
     const timer = setTimeout(() => {
       // 3초 후에 스플래시 스크린을 숨기기
       SplashScreen.hide();
-    }, 3000);
+    }, 2000);
 
     // 클린업 함수
     return () => clearTimeout(timer);
   }, []);
 
+
+  const webViewRef = useRef<WebView>(null); // 타입 명시
+
+  const appState = useRef<AppStateStatus>(AppState.currentState);
+
+  const [lastBackgroundTime, setLastBackgroundTime] = useState<number>(Date.now());
+  let intervalId: NodeJS.Timeout | null = null;
+  const reloadThreshold = 15 * 60000; // 15분
+  const intervalTime = 1 * 60000; //1분
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      console.log('AppState changed:', nextAppState);
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        const timeInBackground = Date.now() - lastBackgroundTime;
+        console.log(Date.now(), lastBackgroundTime);
+        console.log('back time', timeInBackground);
+
+        if (timeInBackground > reloadThreshold) {
+          // 일정 시간 이상 지났을 때만 리로드
+          webViewRef.current?.reload();
+        }
+      }
+      if (nextAppState === 'active') {
+        setLastBackgroundTime(Date.now());
+        intervalId = setInterval(() => {
+          setLastBackgroundTime(Date.now());
+        }, intervalTime);
+        console.log('start timer', intervalId);
+      }
+      if (nextAppState === 'background') {
+        if (intervalId) {
+          console.log(intervalId, 'Interval cleared as app went to background.');
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+      }
+
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => {
+      subscription.remove();
+    };
+  }, [lastBackgroundTime]);
+
+
+
   const customUserAgent =
     "Mozilla/5.0 (Linux; Android 10; Mobile; rv:86.0) Gecko/86.0 Firefox/86.0";
 
-  // useEffect(() => {
-  //   if (loading) {
-  //     // 로딩 중일 때 opacity를 0에서 1로 애니메이션
-  //     Animated.timing(fadeAnim, {
-  //       toValue: 1,
-  //       duration: 1000, // 애니메이션 지속 시간 (밀리초)
-  //       useNativeDriver: true, // 성능 최적화를 위해 네이티브 드라이버 사용
-  //     }).start();
-  //   } else {
-  //     // 로딩이 끝나면 opacity를 1에서 0으로 애니메이션
-  //     Animated.timing(fadeAnim, {
-  //       toValue: 0,
-  //       duration: 1000,
-  //       useNativeDriver: true,
-  //     }).start();
-  //   }
-  // }, [loading, fadeAnim]);
-
-  const webviewRef = useRef<WebView>(null); // 타입 명시
   const [canGoBack, setCanGoBack] = useState(false);
 
   useEffect(() => {
     const onBackPress = () => {
-      if (canGoBack && webviewRef.current) {
-        webviewRef.current.goBack(); // 웹뷰 뒤로가기
+      if (canGoBack && webViewRef.current) {
+        webViewRef.current.goBack(); // 웹뷰 뒤로가기
         return true; // 기본 뒤로가기 동작을 막음
       } else {
         // 뒤로가기 히스토리가 없을 때 앱 종료 확인 알림
@@ -81,25 +109,15 @@ function App(): React.JSX.Element {
   return (
     <SafeAreaView style={{ flex: 1 }} >
       <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
-      {/* {loading && <LoadingScreen />} */}
+      <Text>{lastBackgroundTime} / {intervalId}</Text>
       <WebView
-        ref={webviewRef}
+        ref={webViewRef}
         onNavigationStateChange={navState => setCanGoBack(navState.canGoBack)}
 
         userAgent={customUserAgent}
         overScrollMode="never"
         source={{ uri: 'https://everstamp.site/app' }}
         style={{ flex: 1 }}
-
-      // style={{ flex: loading ? 0 : 1 }}
-      // onLoadStart={() => setLoading(true)}
-      // onLoadEnd={() => setLoading(false)}
-      // onLoadProgress={({ nativeEvent }) => {
-      //   if (nativeEvent.progress === 1) {
-      //     setLoading(false);  // 로딩이 100% 완료되면 로딩 화면 숨기기
-      //   }
-      // }}
-
       />
     </SafeAreaView>
   );
