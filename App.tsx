@@ -29,7 +29,7 @@ function App(): React.JSX.Element {
 
   const [lastBackgroundTime, setLastBackgroundTime] = useState<number>(Date.now());
   let intervalId: NodeJS.Timeout | null = null;
-  const reloadThreshold = 15 * 60000; // 15분
+  const reloadThreshold = 10 * 60000; // 15분
   const intervalTime = 1 * 60000; //1분
 
   useEffect(() => {
