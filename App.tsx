@@ -7,6 +7,9 @@ import WebView from 'react-native-webview';
 import CookieManager from '@react-native-cookies/cookies';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import SplashScreen from 'react-native-splash-screen';
+
+
 import SplashScreenSetting from './component/SplashScreenSetting';
 import BackgroundTimeSettig from './component/BackgroudnTimeSetting';
 import BackActionSetting from './component/BackActionSetting';
@@ -26,6 +29,8 @@ function App(): React.JSX.Element {
 
     console.log(cookies);
     CookieManager.flush();
+
+    SplashScreen.hide();
   }
 
   return (

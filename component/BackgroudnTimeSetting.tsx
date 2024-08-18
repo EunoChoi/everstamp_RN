@@ -1,51 +1,68 @@
 import { useEffect, useRef, useState } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, AppStateStatus, Text } from "react-native";
 
+import SplashScreen from 'react-native-splash-screen';
 
 
 const BackgroundTimeSettig = ({ webViewRef }: any) => {
-  const appState = useRef<AppStateStatus>(AppState.currentState);
-  const [lastBackgroundTime, setLastBackgroundTime] = useState<number>(Date.now());
-  const [intervalId, setIntervalId] = useState<any>(null);
+  const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
+  const [timeInBackground, setTimeInBackground] = useState<number>(0);
 
-  const reloadThreshold = 10 * 60000; // 10분
-  const intervalTime = 1 * 60000; //1분
+  // 백그라운드 시간 저장하기
+  const saveBackgroundTime = async () => {
+    try {
+      const currentTime = new Date().getTime();
+      await AsyncStorage.setItem('backgroundStartTime', currentTime.toString());
+      console.log(`Background time saved: ${currentTime}`);
+    } catch (error) {
+      console.error("Failed to save background time", error);
+    }
+  };
+
+  // 저장된 백그라운드 시간 불러오기
+  const loadBackgroundTime = async () => {
+    try {
+      const savedTime = await AsyncStorage.getItem('backgroundStartTime');
+      if (savedTime !== null) {
+        const currentTime = new Date().getTime();
+        const timeSpentInBackground = currentTime - parseInt(savedTime);
+        setTimeInBackground(timeSpentInBackground);
+        console.log(`Time spent in background: ${timeSpentInBackground} ms`);
+
+        return timeSpentInBackground;
+      }
+    } catch (error) {
+      console.error("Failed to load background time", error);
+    }
+  };
 
   useEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      // console.log('AppState changed:', nextAppState);
-      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        const timeInBackground = Date.now() - lastBackgroundTime;
-        console.log('background time', timeInBackground / 1000 + 's');
-
-        if (timeInBackground > reloadThreshold) {
-          webViewRef.current?.reload();
-        }
+    const handleAppStateChange = (nextAppState: any) => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+        // 포그라운드로 돌아왔을 때
+        loadBackgroundTime().then(res => {
+          if (res && res > 60000) {
+            SplashScreen.show();
+            webViewRef.current?.reload();
+          }
+        })
+      } else if (nextAppState === 'background') {
+        // 백그라운드로 들어갔을 때
+        saveBackgroundTime();
       }
-      if (nextAppState === 'active') {
-        const tempId = setInterval(() => {
-          setLastBackgroundTime(Date.now());
-        }, intervalTime);
-        setIntervalId(tempId);
-      }
-      if (nextAppState === 'background') {
-        if (intervalId) {
-          console.log('timer id', intervalId, 'clear');
-          clearInterval(intervalId);
-        }
-      }
-
-      appState.current = nextAppState;
+      setAppState(nextAppState);
     };
 
-    const changeStatus = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
     return () => {
-      changeStatus.remove();
+      subscription.remove(); // 컴포넌트 언마운트 시 구독 해제
     };
-  }, [lastBackgroundTime, intervalId]);
+  }, [appState]);
 
-  // return <Text>timer id : {intervalId}-{lastBackgroundTime}</Text>;
-  return null;
+  return <Text>timer id : {timeInBackground}ms</Text>;
+  // return null;
 }
 
 export default BackgroundTimeSettig;
