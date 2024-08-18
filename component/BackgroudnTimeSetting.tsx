@@ -9,6 +9,8 @@ const BackgroundTimeSettig = ({ webViewRef }: any) => {
   const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
   const [timeInBackground, setTimeInBackground] = useState<number>(0);
 
+  const reloadThreshold = 15 * 60000; //15m
+
   // 백그라운드 시간 저장하기
   const saveBackgroundTime = async () => {
     try {
@@ -19,6 +21,7 @@ const BackgroundTimeSettig = ({ webViewRef }: any) => {
       console.error("Failed to save background time", error);
     }
   };
+
 
   // 저장된 백그라운드 시간 불러오기
   const loadBackgroundTime = async () => {
@@ -37,12 +40,13 @@ const BackgroundTimeSettig = ({ webViewRef }: any) => {
     }
   };
 
+
   useEffect(() => {
     const handleAppStateChange = (nextAppState: any) => {
       if (appState.match(/inactive|background/) && nextAppState === 'active') {
         // 포그라운드로 돌아왔을 때
         loadBackgroundTime().then(res => {
-          if (res && res > 60000) {
+          if (res && res > reloadThreshold) {
             SplashScreen.show();
             webViewRef.current?.reload();
           }
@@ -61,8 +65,8 @@ const BackgroundTimeSettig = ({ webViewRef }: any) => {
     };
   }, [appState]);
 
-  return <Text>timer id : {timeInBackground}ms</Text>;
-  // return null;
+  // return <Text>timer id : {timeInBackground}ms</Text>;
+  return null;
 }
 
 export default BackgroundTimeSettig;
