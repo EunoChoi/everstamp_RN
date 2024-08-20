@@ -9,7 +9,7 @@ const BackgroundTimeSettig = ({ webViewRef }: any) => {
   const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
   const [timeInBackground, setTimeInBackground] = useState<number>(0);
 
-  const reloadThreshold = 15 * 60000; //15m
+  const reloadThreshold = 10 * 60000; // n * 1m
 
   // 백그라운드 시간 저장하기
   const saveBackgroundTime = async () => {
