@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
-import { Alert, BackHandler, Button, Modal, StyleSheet, Text, View, Platform } from "react-native";
+import { BackHandler, TouchableOpacity, Modal, StyleSheet, Text, View, Platform } from "react-native";
 
 const BackActionSetting = ({ canGoBack, webViewRef }: any) => {
 
   const [modalVisible, setModalVisible] = useState(false);
+
+  const onClickButtonNo = () => {
+    setModalVisible(false)
+  }
+  const onClickButtonYes = () => {
+    setModalVisible(false); setTimeout(() => { BackHandler.exitApp(); }, 300)
+  }
+
 
   useEffect(() => {
     const onBackPress = () => {
@@ -11,21 +19,7 @@ const BackActionSetting = ({ canGoBack, webViewRef }: any) => {
         webViewRef.current.goBack(); // 웹뷰 뒤로가기
         return true; // 기본 뒤로가기 동작을 막음
       } else {
-        // 뒤로가기 히스토리가 없을 때 앱 종료 확인 알림
         setModalVisible(true)
-
-        // Alert.alert(
-        //   "Everstamp",
-        //   "앱을 종료하시겠습니까?",
-        //   [
-        //     {
-        //       text: "아니오",
-        //       onPress: () => null,
-        //       style: "cancel"
-        //     },
-        //     { text: "네", onPress: () => BackHandler.exitApp() }
-        //   ]
-        // );
         return true; // 기본 뒤로가기 동작을 막음
       }
     };
@@ -44,16 +38,24 @@ const BackActionSetting = ({ canGoBack, webViewRef }: any) => {
       setModalVisible(false);
     }}
   >
-    <View style={styles.modalBackground} >
+    <View style={styles.modalBackground}>
       <View style={styles.alertBox}>
-        <Text style={styles.alertTitle}>앱 종료</Text>
-        <Text style={styles.alertText}>Everstamp 앱을 종료하시겠습니까?</Text>
+        <Text style={styles.alertTitle}>
+          <Text style={styles.alertTitleFirstLetter}>E</Text>
+          <Text>verstamp</Text>
+        </Text>
+        <Text style={styles.alertText}>앱을 종료하시겠습니까?</Text>
         <View style={styles.buttonContainer}>
-          <Text style={styles.buttonNo} onPress={() => setModalVisible(false)} >아니요</Text>
-          <Text style={styles.buttonYes} onPress={() => { setModalVisible(false); setTimeout(() => { BackHandler.exitApp(); }, 300) }} >네</Text>
+          <TouchableOpacity style={styles.buttonNo} onPress={onClickButtonNo}>
+            <Text style={styles.buttonText}>아니요</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.buttonYes} onPress={onClickButtonYes}>
+            <Text style={styles.buttonText}>네</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
+
   </Modal>;
 }
 
@@ -69,24 +71,29 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.10)'
   },
   alertBox: {
     width: 350,
     padding: 30,
+
     backgroundColor: 'white',
-    borderRadius: 16,
+    borderRadius: 24,
     alignItems: 'center',
+
+    elevation: 6,
   },
   alertTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    // marginBottom: 10,
+    fontSize: 20,
+    fontWeight: '700',
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
+  alertTitleFirstLetter: {
+    color: '#acb2d3',
+  },
   alertText: {
-    fontSize: 18,
-    // fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
     marginTop: 25,
     marginBottom: 25,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
@@ -98,30 +105,34 @@ const styles = StyleSheet.create({
   },
   buttonNo: {
     width: 80,
-    paddingTop: 8,
-    paddingBottom: 8,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',  // 수직 정렬
+    alignItems: 'center',       // 수평 정렬
     marginLeft: 4,
     marginRight: 4,
-
-    borderRadius: 12,
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    paddingBottom: 1,
     backgroundColor: 'white',
     borderColor: '#cfd2e3',
-    borderWidth: 3,
+    borderWidth: 2,
+  },
+  buttonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+    verticalAlign: 'middle'
   },
   buttonYes: {
     width: 80,
-    paddingTop: 8,
-    paddingBottom: 8,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',  // 수직 정렬
+    alignItems: 'center',       // 수평 정렬
     marginLeft: 4,
     marginRight: 4,
-
-    borderRadius: 12,
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    backgroundColor: '#cfd2e3'
+    paddingBottom: 1,
+    backgroundColor: '#cfd2e3',
+    borderColor: '#cfd2e3',
+    borderWidth: 2,
   }
 });
