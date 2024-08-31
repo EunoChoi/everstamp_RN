@@ -22,22 +22,23 @@ function App(): React.JSX.Element {
 
   const webViewRef = useRef<WebView>(null); // 타입 명시
   const [canGoBack, setCanGoBack] = useState(false);
+  const [splashScreenOpen, setSplashScreenOpen] = useState(false);
 
   const onLoad = async () => {
-    // const cookies = await CookieManager.get('https://everstamp.site');
-    const cookies = await CookieManager.get('.everstamp.site');
-
-    console.log(cookies);
+    // const cookies = await CookieManager.get('.everstamp.site');
+    // console.log(cookies);
+    if (splashScreenOpen) {
+      SplashScreen.hide();
+      setSplashScreenOpen(false);
+    }
     CookieManager.flush();
-
-    SplashScreen.hide();
   }
 
   return (
     <SafeAreaView style={{ flex: 1 }} >
       <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
       <SplashScreenSetting />
-      <BackgroundTimeSettig webViewRef={webViewRef} />
+      {/* <BackgroundTimeSettig webViewRef={webViewRef} splashScreenOpen={splashScreenOpen} setSplashScreenOpen={setSplashScreenOpen} /> */}
       <BackActionSetting webViewRef={webViewRef} canGoBack={canGoBack} />
       <WebView
         ref={webViewRef}
@@ -56,16 +57,16 @@ function App(): React.JSX.Element {
 
         onLoadEnd={onLoad}
 
-        onShouldStartLoadWithRequest={(request) => {
-          if (request.url.startsWith('https://')) {
-            // HTTPS 요청에 문제가 없는 경우 계속 로드
-            return true;
-          } else {
-            // HTTPS 오류가 있는 경우 차단하거나 다른 조치 수행
-            console.warn('HTTPS 오류 발생:', request.url);
-            return false;
-          }
-        }}
+      // onShouldStartLoadWithRequest={(request) => {
+      //   if (request.url.startsWith('https://')) {
+      //     // HTTPS 요청에 문제가 없는 경우 계속 로드
+      //     return true;
+      //   } else {
+      //     // HTTPS 오류가 있는 경우 차단하거나 다른 조치 수행
+      //     console.warn('HTTPS 오류 발생:', request.url);
+      //     return false;
+      //   }
+      // }}
       >
       </WebView>
     </SafeAreaView>
