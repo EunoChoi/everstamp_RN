@@ -27,10 +27,10 @@ function App(): React.JSX.Element {
   const onLoad = async () => {
     // const cookies = await CookieManager.get('.everstamp.site');
     // console.log(cookies);
-    if (splashScreenOpen) {
-      SplashScreen.hide();
-      setSplashScreenOpen(false);
-    }
+    // if (splashScreenOpen) {
+    //   SplashScreen.hide();
+    //   setSplashScreenOpen(false);
+    // }
     CookieManager.flush();
   }
 
